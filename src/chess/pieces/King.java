@@ -28,7 +28,7 @@ public class King extends ChessPiece {
 
         Position p = new Position(0, 0);
 
-        //acima
+//        acima
         p.setValues(position.getRow() - 1, position.getColumn());
         if (getBoard().positionExists(p) && canMove(p)) {
             mat[p.getRow()][p.getColumn()] = true;
@@ -72,7 +72,7 @@ public class King extends ChessPiece {
 
 //        diagonal direita abaixo
         p.setValues(position.getRow() + 1, position.getColumn() + 1);
-        if (getBoard().positionExists(p) && canMove(p)){
+        if (getBoard().positionExists(p) && canMove(p)) {
             mat[p.getRow()][p.getColumn()] = true;
         }
 
