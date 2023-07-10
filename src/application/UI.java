@@ -49,21 +49,37 @@ public class UI {
         }
     }
 
+    /*Metodo que imprimi na tela o tabuleiro de xadrez*/
     public static void printBoard(ChessPiece[][] pieces) {
-        for (int l = 0; l < pieces.length; l++) {  //Uso do pieces.length considerando que a matriz será quadrada.
-            System.out.print((8 - l) + " ");
-            for (int c = 0; c < pieces.length; c++) {
-                printPiece(pieces[l][c]);
+        for (int row = 0; row < pieces.length; row++) {  //Uso do pieces.length considerando que a matriz será quadrada.
+            System.out.print((8 - row) + " ");
+            for (int column = 0; column < pieces.length; column++) {
+                printPiece(pieces[row][column], false);
             }
             System.out.println();
         }
         System.out.print("  a b c d e f g h");
     }
 
+    public static void printBoard(ChessPiece[][] pieces, boolean[][] possibleMoves) {
+        for (int row = 0; row < pieces.length; row++) {
+            System.out.print((8 - row) + " ");
+            for (int column = 0; column < pieces.length; column++) {
+                printPiece(pieces[row][column], possibleMoves[row][column]);
+            }
+            System.out.println();
+        }
+        System.out.print("  a b c d e f g h");
+    }
+
+
     /*Metodo auxiliar para imprimir uma peça*/
-    private static void printPiece(ChessPiece piece) {
+    private static void printPiece(ChessPiece piece, boolean background) {
+        if (background) {
+            System.out.print(ANSI_BLUE_BACKGROUND);
+        }
         if (piece == null) {
-            System.out.print("-");
+            System.out.print("-" + ANSI_RESET);
         } else {
             if (piece.getColor() == Color.WHITE) {
                 System.out.print(ANSI_WHITE + piece + ANSI_RESET);

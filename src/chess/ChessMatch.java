@@ -27,6 +27,13 @@ public class ChessMatch {
         return mat;
     }
 
+    /*Metodo usado para avaliar quais os possiveis movimentos de cada peça, e sendo utilizada para que possa ser colorido o background com as possiveis jogadas*/
+    public boolean[][] possibleMoves(ChessPosition sourcePosition) {
+        Position position = sourcePosition.toPosition(); //converte uma posição de xadrez em uma posição de matriz.
+        validateSourcePosition(position);
+        return board.piece(position).possibleMoves();
+    }
+
     public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
         Position source = sourcePosition.toPosition();
         Position target = targetPosition.toPosition();
