@@ -8,6 +8,7 @@ import chess.pieces.Rook;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /*Classe que será a responsável por conter as regras do jogo.*/
 public class ChessMatch {
@@ -15,6 +16,7 @@ public class ChessMatch {
     private int turn;
     private Color currentPlayer;
     private Board board;
+    private boolean check;
 
     private List<Piece> piecesOnTheBoard = new ArrayList<>();
     private List<Piece> capturedPieces = new ArrayList<>();
@@ -32,6 +34,10 @@ public class ChessMatch {
 
     public Color getCurrentPlayer() {
         return currentPlayer;
+    }
+
+    public boolean getCheck() {
+        return check;
     }
 
     /*Metodo que irá retornar uma matriz das peças de xadrez, correspondentes a partida.*/
@@ -52,16 +58,28 @@ public class ChessMatch {
         return board.piece(position).possibleMoves();
     }
 
+    /*Metodo que executa a jogada de xadrez*/
     public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
         Position source = sourcePosition.toPosition();
         Position target = targetPosition.toPosition();
         validateSourcePosition(source); //Operação responsavel por validar a posição de origem
         validateTargetPosition(source, target);
         Piece capturedPiece = makeMove(source, target);
+
+//        Testando para saber se o jogador se auto colocou em check
+        if (testCheck(currentPlayer)) {
+            undoMove(source, target, capturedPiece);
+            throw new ChessException("You can't put yourself in check!");
+        }
+
+//        Testando se o oponente está em check
+        check = (testCheck(opponent(currentPlayer))) ? true : false;
+
         nextTurn();
         return (ChessPiece) capturedPiece;
     }
 
+    /*Metodo responsável por realizar o movimento da peça*/
     private Piece makeMove(Position source, Position target) {
         Piece p = board.removePiece(source); //Variavel para retirar a peça da posição de origem
         Piece capturedPiece = board.removePiece(target); //Variavel para remover a possivel peça que esteja na posição de destino, se tornando por padrao a peça capturada
@@ -71,6 +89,18 @@ public class ChessMatch {
             capturedPieces.add(capturedPiece);
         }
         return capturedPiece;
+    }
+
+    /*Metodo responsável por desfazer um movimento da peça*/
+    private void undoMove(Position source, Position target, Piece capturedPiece) {
+        Piece p = board.removePiece(target);
+        board.placePiece(p, source);
+
+        if (capturedPiece != null) {
+            board.placePiece(capturedPiece, target);
+            capturedPieces.remove(capturedPiece);
+            piecesOnTheBoard.add(capturedPiece);
+        }
     }
 
     /*Metodo para a validação da posição de origem*/
@@ -93,9 +123,39 @@ public class ChessMatch {
         }
     }
 
+    /*Metodo que realiza a troca de turnos*/
     private void nextTurn() {
         turn++;
         currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    }
+
+    /*Metodo para indentificar uma peça adversária*/
+    private Color opponent(Color color) {
+        return (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    }
+
+    /*Metodo para identificar o Rei de uma determinada cor.*/
+    private ChessPiece king(Color color) {
+        List<Piece> list = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == color).collect(Collectors.toList());
+        for (Piece p : list) {
+            if (p instanceof King) {
+                return (ChessPiece) p;
+            }
+        }
+        throw new IllegalStateException("There is no " + color + "king on the board!"); //Essa exceção não vai ser tratada pois não deverá ocorrer de forma alugma na execução do programa principal.
+    }
+
+    /*Metodo responsável por testar se  o Rei estará ou não em check*/
+    private boolean testCheck(Color color) {
+        Position kingPosition = king(color).getChessPosition().toPosition();
+        List<Piece> opponentPieces = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == opponent(color)).collect(Collectors.toList()); //lista para mapear as peças oponentes.
+        for (Piece p : opponentPieces) {
+            boolean[][] mat = p.possibleMoves(); //lista de possiveis movimentos da peça adversária
+            if (mat[kingPosition.getRow()][kingPosition.getColumn()]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /*Metodo que irá receber as coordenadas do xadrez*/
