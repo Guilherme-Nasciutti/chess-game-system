@@ -9,16 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/*Classe que será a responsável por conter as regras do jogo.*/
 public class ChessMatch {
 
     private int turn;
     private Color currentPlayer;
     private Board board;
-    private boolean check;
-    private boolean checkMate;
-    private ChessPiece enPassantVulnerable;
-    private ChessPiece promoted;
+    private boolean check, checkMate;
+    private ChessPiece enPassantVulnerable, promoted;
 
     private List<Piece> piecesOnTheBoard = new ArrayList<>();
     private List<Piece> capturedPieces = new ArrayList<>();
@@ -54,41 +51,37 @@ public class ChessMatch {
         return promoted;
     }
 
-    /*Metodo que irá retornar uma matriz das peças de xadrez, correspondentes a partida.*/
     public ChessPiece[][] getPieces() {
-        ChessPiece[][] mat = new ChessPiece[board.getRows()][board.getColumns()];
-        for (int l = 0; l < board.getRows(); l++) {
-            for (int c = 0; c < board.getColumns(); c++) {
-                mat[l][c] = (ChessPiece) board.piece(l, c);
+        ChessPiece[][] matrixChessPiece = new ChessPiece[board.getRows()][board.getColumns()];
+        for (int row = 0; row < board.getRows(); row++) {
+            for (int column = 0; column < board.getColumns(); column++) {
+                matrixChessPiece[row][column] = (ChessPiece) board.piece(row, column);
             }
         }
-        return mat;
+        return matrixChessPiece;
     }
 
-    /*Metodo usado para avaliar quais os possiveis movimentos de cada peça, e sendo utilizada para que possa ser colorido o background com as possiveis jogadas*/
     public boolean[][] possibleMoves(ChessPosition sourcePosition) {
-        Position position = sourcePosition.toPosition(); //converte uma posição de xadrez em uma posição de matriz.
+        Position position = sourcePosition.toPosition();
         validateSourcePosition(position);
         return board.piece(position).possibleMoves();
     }
 
-    /*Metodo que executa a jogada de xadrez*/
     public ChessPiece performChessMove(ChessPosition sourcePosition, ChessPosition targetPosition) {
         Position source = sourcePosition.toPosition();
         Position target = targetPosition.toPosition();
-        validateSourcePosition(source); //Operação responsavel por validar a posição de origem
+        validateSourcePosition(source);
         validateTargetPosition(source, target);
         Piece capturedPiece = makeMove(source, target);
 
-//        Testando para saber se o jogador se auto colocou em check
         if (testCheck(currentPlayer)) {
             undoMove(source, target, capturedPiece);
             throw new ChessException("You can't put yourself in check!");
         }
 
-        ChessPiece movedPiece = (ChessPiece) board.piece(target); //referencia para uma peça movida para a posição de destino
+        ChessPiece movedPiece = (ChessPiece) board.piece(target);
 
-//        #Movimento especial - Promoção
+//        #Special move - Promotion
         promoted = null;
         if (movedPiece instanceof Pawn) {
             if ((movedPiece.getColor() == Color.WHITE && target.getRow() == 0) || (movedPiece.getColor() == Color.BLACK && target.getRow() == 7)) {
@@ -96,22 +89,19 @@ public class ChessMatch {
                 promoted = replacePromotedPiece("Q");
             }
         }
-//        Testando se o oponente está em check
         check = (testCheck(opponent(currentPlayer))) ? true : false;
 
-//        Testando se houve o checkMate e o jogo será encerrado
         if (testCheckMate(opponent(currentPlayer))) {
             checkMate = true;
         } else {
             nextTurn();
         }
-//        #Movimento especial - En passant
+//        #Special move - En passant
         if (movedPiece instanceof Pawn && (target.getRow() == source.getRow() - 2 || target.getRow() == source.getRow() + 2)) {
             enPassantVulnerable = movedPiece;
         } else {
             enPassantVulnerable = null;
         }
-
         return (ChessPiece) capturedPiece;
     }
 
@@ -126,31 +116,30 @@ public class ChessMatch {
         Piece p = board.removePiece(positionPromoted);
         piecesOnTheBoard.remove(p);
 
-        ChessPiece newPiece = newPiece(type, promoted.getColor());
-        board.placePiece(newPiece, positionPromoted);
-        piecesOnTheBoard.add(newPiece);
+        ChessPiece newPiecePromoted = newPiecePromoted(type, promoted.getColor());
+        board.placePiece(newPiecePromoted, positionPromoted);
+        piecesOnTheBoard.add(newPiecePromoted);
 
-        return newPiece;
+        return newPiecePromoted;
     }
 
-    private ChessPiece newPiece(String type, Color color) {
+    private ChessPiece newPiecePromoted(String type, Color color) {
         if (type.equals("B")) return new Bishop(board, color);
         if (type.equals("N")) return new Knight(board, color);
         if (type.equals("Q")) return new Queen(board, color);
         return new Rook(board, color);
     }
 
-    /*Metodo responsável por realizar o movimento da peça*/
     private Piece makeMove(Position source, Position target) {
-        ChessPiece p = (ChessPiece) board.removePiece(source); //Variavel para retirar a peça da posição de origem
+        ChessPiece p = (ChessPiece) board.removePiece(source);
         p.increaseMoveCount();
-        Piece capturedPiece = board.removePiece(target); //Variavel para remover a possivel peça que esteja na posição de destino, se tornando por padrao a peça capturada
+        Piece capturedPiece = board.removePiece(target);
         board.placePiece(p, target);
         if (capturedPiece != null) {
             piecesOnTheBoard.remove(capturedPiece);
             capturedPieces.add(capturedPiece);
         }
-//        #Movimento especial - Roque Curto
+//        #Special move - Castle Kingside
         if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
             Position positionSourceRook = new Position(source.getRow(), source.getColumn() + 3);
             Position positionTargetRook = new Position(source.getRow(), source.getColumn() + 1);
@@ -158,7 +147,7 @@ public class ChessMatch {
             board.placePiece(rook, positionTargetRook);
             rook.increaseMoveCount();
         }
-//            #Movimento especial - Roque Grande
+//            #Special move - Castle Queenside
         if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
             Position positionSourceRook = new Position(source.getRow(), source.getColumn() - 4);
             Position positionTargetRook = new Position(source.getRow(), source.getColumn() - 1);
@@ -166,7 +155,7 @@ public class ChessMatch {
             board.placePiece(rook, positionTargetRook);
             rook.increaseMoveCount();
         }
-//        #Movimento especial - En passant
+//        #Special move - En passant
         if (p instanceof Pawn) {
             if (source.getColumn() != target.getColumn() && capturedPiece == null) {
                 Position pawnPosition;
@@ -183,7 +172,6 @@ public class ChessMatch {
         return capturedPiece;
     }
 
-    /*Metodo responsável por desfazer um movimento da peça*/
     private void undoMove(Position source, Position target, Piece capturedPiece) {
         ChessPiece p = (ChessPiece) board.removePiece(target);
         p.decreaseMoveCount();
@@ -194,7 +182,7 @@ public class ChessMatch {
             capturedPieces.remove(capturedPiece);
             piecesOnTheBoard.add(capturedPiece);
         }
-//        #Movimento especial - Roque Curto
+//        #Special move - Castle Kingside
         if (p instanceof King && target.getColumn() == source.getColumn() + 2) {
             Position positionSourceRook = new Position(source.getRow(), source.getColumn() + 3);
             Position positionTargetRook = new Position(source.getRow(), source.getColumn() + 1);
@@ -202,7 +190,7 @@ public class ChessMatch {
             board.placePiece(rook, positionSourceRook);
             rook.decreaseMoveCount();
         }
-//        #Movimento especial - Roque Grande
+//        #Special move - Castle Queenside
         if (p instanceof King && target.getColumn() == source.getColumn() - 2) {
             Position positionSourceRook = new Position(source.getRow(), source.getColumn() - 4);
             Position positionTargetRook = new Position(source.getRow(), source.getColumn() - 1);
@@ -210,7 +198,7 @@ public class ChessMatch {
             board.placePiece(rook, positionSourceRook);
             rook.decreaseMoveCount();
         }
-//        #Movimento especial -En passant
+//        #Special move -En passant
         if (p instanceof Pawn) {
             if (source.getColumn() != target.getColumn() && capturedPiece == enPassantVulnerable) {
                 ChessPiece pawn = (ChessPiece) board.removePiece(target);
@@ -225,7 +213,6 @@ public class ChessMatch {
         }
     }
 
-    /*Metodo para a validação da posição de origem*/
     private void validateSourcePosition(Position position) {
         if (!board.thereIsAPiece(position)) {
             throw new ChessException("There is no piece on source position!");
@@ -238,25 +225,21 @@ public class ChessMatch {
         }
     }
 
-    /*Metodo para validar se é possivel mover a peça para determinada posição*/
     private void validateTargetPosition(Position source, Position target) {
         if (!board.piece(source).possibleMoves(target)) {
             throw new ChessException("The chosen piece can't move to target position!");
         }
     }
 
-    /*Metodo que realiza a troca de turnos*/
     private void nextTurn() {
         turn++;
         currentPlayer = (currentPlayer == Color.WHITE) ? Color.BLACK : Color.WHITE;
     }
 
-    /*Metodo para indentificar uma peça adversária*/
     private Color opponent(Color color) {
         return (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
     }
 
-    /*Metodo para identificar o Rei de uma determinada cor.*/
     private ChessPiece king(Color color) {
         List<Piece> list = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == color).collect(Collectors.toList());
         for (Piece p : list) {
@@ -264,15 +247,14 @@ public class ChessMatch {
                 return (ChessPiece) p;
             }
         }
-        throw new IllegalStateException("There is no " + color + "king on the board!"); //Essa exceção não vai ser tratada pois não deverá ocorrer de forma alugma na execução do programa principal.
+        throw new IllegalStateException("There is no " + color + "king on the board!"); //Unhandled exception. It cannot occur during the execution of the main program.
     }
 
-    /*Metodo responsável por testar se  o Rei estará ou não em check*/
     private boolean testCheck(Color color) {
         Position kingPosition = king(color).getChessPosition().toPosition();
-        List<Piece> opponentPieces = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == opponent(color)).collect(Collectors.toList()); //lista para mapear as peças oponentes.
+        List<Piece> opponentPieces = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == opponent(color)).collect(Collectors.toList());
         for (Piece p : opponentPieces) {
-            boolean[][] mat = p.possibleMoves(); //lista de possiveis movimentos da peça adversária
+            boolean[][] mat = p.possibleMoves();
             if (mat[kingPosition.getRow()][kingPosition.getColumn()]) {
                 return true;
             }
@@ -284,18 +266,17 @@ public class ChessMatch {
         if (!testCheck(color)) {
             return false;
         }
-//        Testando se alguma peça da cor do argumento não tem um movimento possivel para tirar do check
         List<Piece> list = piecesOnTheBoard.stream().filter(x -> ((ChessPiece) x).getColor() == (color)).collect(Collectors.toList());
         for (Piece p : list) {
-            boolean[][] mat = p.possibleMoves(); //pegando todos os movimentos possiveis da peça
+            boolean[][] mat = p.possibleMoves();
             for (int row = 0; row < board.getRows(); row++) {
                 for (int column = 0; column < board.getColumns(); column++) {
-                    if (mat[row][column]) { //testando se o movimento possivel é capaz de tirar o rei do check
-                        Position source = ((ChessPiece) p).getChessPosition().toPosition(); //converte a peça para peça de xadrez,pegando a posição de xadrez e convertendo para a posição da matriz
-                        Position target = new Position(row, column); //a posição de destino é a posição da matriz com o movimento possivel
-                        Piece capturedPiece = makeMove(source, target); //pega a peça e faz o movimento
-                        boolean testCheck = testCheck(color); //testa se o rei da cor passada ainda está em check
-                        undoMove(source, target, capturedPiece); //depois de testar desfaz o movimento para não atrapalhar o jogo e a posição do tabuleiro
+                    if (mat[row][column]) {
+                        Position source = ((ChessPiece) p).getChessPosition().toPosition();
+                        Position target = new Position(row, column);
+                        Piece capturedPiece = makeMove(source, target);
+                        boolean testCheck = testCheck(color);
+                        undoMove(source, target, capturedPiece);
                         if (!testCheck) {
                             return false;
                         }
@@ -306,13 +287,11 @@ public class ChessMatch {
         return true;
     }
 
-    /*Metodo que irá receber as coordenadas do xadrez*/
     private void placeNewPiece(char column, int row, ChessPiece piece) {
         board.placePiece(piece, new ChessPosition(column, row).toPosition());
         piecesOnTheBoard.add(piece);
     }
 
-    /*Metodo responsável por iniciar a partida de xadrez, colocando as peças no tabuleiro*/
     private void initialSetup() {
         placeNewPiece('a', 1, new Rook(board, Color.WHITE));
         placeNewPiece('b', 1, new Knight(board, Color.WHITE));

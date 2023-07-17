@@ -21,28 +21,26 @@ public class Pawn extends ChessPiece {
         Position p = new Position(0, 0);
 
         if (getColor() == Color.WHITE) {
-//            Uma posição a frente
             p.setValues(position.getRow() - 1, position.getColumn());
             if (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//            Duas posições a frente (Primeiro movimento da peça)
             p.setValues(position.getRow() - 2, position.getColumn());
             Position p2 = new Position(position.getRow() - 1, position.getColumn());
             if (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p) && getBoard().positionExists(p2) && !getBoard().thereIsAPiece(p2) && getMoveCount() == 0) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//            Diagonal Esquerda a frente (somente possivel se houver uma peça adversária)
+//            Left diagonal
             p.setValues(position.getRow() - 1, position.getColumn() - 1);
             if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//            Diagonal Direita a frente (somente possivel se houver uma peça adversária)
+//            Right diagonal
             p.setValues(position.getRow() - 1, position.getColumn() + 1);
             if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//            #Movimento especial - En passant
+//            #Special move - En passant
             if (position.getRow() == 3) {
                 Position left = new Position(position.getRow(), position.getColumn() - 1);
                 if (getBoard().positionExists(left) && isThereOpponentPiece(left) && getBoard().piece(left) == chessMatch.getEnPassantVulnerable()) {
@@ -53,30 +51,27 @@ public class Pawn extends ChessPiece {
                     mat[right.getRow() - 1][right.getColumn()] = true;
                 }
             }
-        } else { //Logica para o peão preto
-
-//                Uma posição a frente
+        } else {
             p.setValues(position.getRow() + 1, position.getColumn());
             if (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//                Duas posições a frente (Primeiro movimento da peça)
             p.setValues(position.getRow() + 2, position.getColumn());
             Position p2 = new Position(position.getRow() + 1, position.getColumn());
             if (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p) && getBoard().positionExists(p2) && !getBoard().thereIsAPiece(p2) && getMoveCount() == 0) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//                Diagonal Esquerda a frente (somente possivel se houver uma peça adversária)
+//                Left diagonal
             p.setValues(position.getRow() + 1, position.getColumn() - 1);
             if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//                Diagonal Direita a frente (somente possivel se houver uma peça adversária)
+//                Right diagonal
             p.setValues(position.getRow() + 1, position.getColumn() + 1);
             if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
                 mat[p.getRow()][p.getColumn()] = true;
             }
-//            #Movimento especial - En passant
+//            #MSpecial move - En passant
             if (position.getRow() == 4) {
                 Position right = new Position(position.getRow(), position.getColumn() + 1);
                 if (getBoard().positionExists(right) && isThereOpponentPiece(right) && getBoard().piece(right) == chessMatch.getEnPassantVulnerable()) {

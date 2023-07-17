@@ -23,12 +23,10 @@ public class ChessPosition {
         return row;
     }
 
-    /*Metodo para converter uma posição de xadrez, em uma posição de matriz*/
     protected Position toPosition() {
         return new Position(8 - row, column - 'a');
     }
 
-    /*Metodo para converter uma posição de matriz em uma posição de xadrez*/
     protected static ChessPosition fromPosition(Position position) {
         return new ChessPosition((char) ('a' + position.getColumn()), 8 - position.getRow());
     }

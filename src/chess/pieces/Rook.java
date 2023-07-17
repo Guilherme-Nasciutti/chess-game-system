@@ -15,16 +15,14 @@ public class Rook extends ChessPiece {
         return "R";
     }
 
-
-    /*Metodo provisório sem a implementação dos possiveis movimentos da peça, ainda retornando false em todas as casas do tabuleiro*/
     @Override
     public boolean[][] possibleMoves() {
         boolean[][] mat = new boolean[getBoard().getRows()][getBoard().getColumns()];
 
         Position p = new Position(0, 0); //Valor auxiliar
 
-//        acima
-        p.setValues(position.getRow() - 1, position.getColumn());//acessando a posição da classe Piece
+//        Above
+        p.setValues(position.getRow() - 1, position.getColumn());
         while (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
             p.setRow(p.getRow() - 1);
@@ -32,8 +30,7 @@ public class Rook extends ChessPiece {
         if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
         }
-
-//        esquerda
+//        Left
         p.setValues(position.getRow(), position.getColumn() - 1);
         while (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
@@ -42,8 +39,7 @@ public class Rook extends ChessPiece {
         if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
         }
-
-//        direita
+//        Right
         p.setValues(position.getRow(), position.getColumn() + 1);
         while (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
@@ -52,8 +48,7 @@ public class Rook extends ChessPiece {
         if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
         }
-
-//        abaixo
+//        Below
         p.setValues(position.getRow() + 1, position.getColumn());
         while (getBoard().positionExists(p) && !getBoard().thereIsAPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
@@ -62,7 +57,6 @@ public class Rook extends ChessPiece {
         if (getBoard().positionExists(p) && isThereOpponentPiece(p)) {
             mat[p.getRow()][p.getColumn()] = true;
         }
-
         return mat;
     }
 }

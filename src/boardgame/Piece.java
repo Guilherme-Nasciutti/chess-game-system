@@ -15,14 +15,12 @@ public abstract class Piece {
 
     public abstract boolean[][] possibleMoves();
 
-    /*Metodo que será responsável por dizer se é possivel que a peça seja ou não movida a dada posição*/
-    public boolean possibleMoves(Position position) { //Metodo concreto que está utilizando um metodo abstrato
+    public boolean possibleMoves(Position position) {
         return possibleMoves()[position.getRow()][position.getColumn()];
     }
 
-    /*Metodo que irá retornar se existe algum movimento possivel para a peça*/
     public boolean isThereAnyPossibleMove() {
-        boolean[][] mat = possibleMoves(); //Variavel auxiliar para percorrer a matriz
+        boolean[][] mat = possibleMoves();
         for (int row = 0; row < mat.length; row++) {
             for (int column = 0; column < mat.length; column++) {
                 if (mat[row][column]) {
@@ -32,5 +30,4 @@ public abstract class Piece {
         }
         return false;
     }
-
 }
